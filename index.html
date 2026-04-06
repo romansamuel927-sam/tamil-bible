@@ -137,24 +137,39 @@ function selectChapter(c){
 
 // LOAD
 async function loadChapter(){
- const book=BOOKS[currentBook];
+ const book = BOOKS[currentBook];
  updateURL();
 
- let data=cache[book.file];
+ let data = cache[book.file];
  if(!data){
-  const res=await fetch(BASE+encodeURIComponent(book.file)+".json");
-  data=await res.json();
-  cache[book.file]=data;
+  const res = await fetch(BASE + encodeURIComponent(book.file) + ".json");
+  data = await res.json();
+  cache[book.file] = data;
  }
 
- const verses=data[currentChapter];
- let html=`<h2>${book.ta} ${currentChapter}</h2>`;
+ // ✅ FIX: handle both number + string keys
+ let verses = data[currentChapter] || data[String(currentChapter)];
 
- Object.values(verses).forEach((v,i)=>{
-  html+=`<div class="verse" onclick="highlight(this)"><b>${i+1}</b> ${v}</div>`;
- });
+ // ❗ If still not found
+ if(!verses){
+  document.getElementById("content").innerHTML = "⚠️ வசனங்கள் கிடைக்கவில்லை";
+  return;
+ }
 
- document.getElementById("content").innerHTML=html;
+ let html = `<h2>${book.ta} ${currentChapter}</h2>`;
+
+ // ✅ FIX: handle array + object formats
+ if (Array.isArray(verses)) {
+  verses.forEach((v,i)=>{
+    html += `<div class="verse" onclick="highlight(this)"><b>${i+1}</b> ${v}</div>`;
+  });
+ } else {
+  Object.entries(verses).forEach(([num, v])=>{
+    html += `<div class="verse" onclick="highlight(this)"><b>${num}</b> ${v}</div>`;
+  });
+ }
+
+ document.getElementById("content").innerHTML = html;
 }
 
 // HIGHLIGHT
