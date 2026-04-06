@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>தமிழ் வேதாகமம்</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Tamil&family=Noto+Sans+Tamil&family=DM+Sans&display=swap" rel="stylesheet">
+
+<style>
+body { margin:0; font-family:'Noto Sans Tamil'; background:#fafaf8; }
+header { background:#1a4fa0; color:white; padding:10px; display:flex; justify-content:space-between; }
+input { padding:6px; border-radius:6px; border:none; }
+
+.layout { display:flex; height:calc(100vh - 50px); }
+.sidebar { width:230px; overflow:auto; border-right:1px solid #ddd; background:#f5f4f0; }
+.content { flex:1; padding:20px; overflow:auto; }
+
+.book { padding:8px; cursor:pointer; }
+.book:hover { background:#ddd; }
+.active { background:#1a4fa0; color:white; }
+
+.chapter-grid { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+.ch { width:32px; height:32px; border:1px solid #ccc; cursor:pointer; text-align:center; line-height:32px; }
+.ch.active { background:#1a4fa0; color:white; }
+
+.verse { margin-bottom:12px; line-height:1.8; cursor:pointer; }
+.highlight { background:#fff3cd; }
+
+.nav { margin-top:20px; display:flex; justify-content:space-between; }
+button { padding:6px 10px; cursor:pointer; }
+</style>
+</head>
+
+<body>
+
+<header>
+<div>📖 தமிழ் வேதாகமம்</div>
+<input id="search" placeholder="தேடுக...">
+</header>
+
+<div class="layout">
+<div class="sidebar" id="books"></div>
+
+<div class="content">
+<div id="chapters"></div>
+<div id="content">Loading...</div>
+
+<div class="nav">
+<button onclick="prev()">← Previous</button>
+<button onclick="next()">Next →</button>
+</div>
+</div>
+</div>
+
+<script>
+const BASE = 'https://cdn.jsdelivr.net/gh/aruljohn/Bible-tamil@main/Books/';
+
+const BOOKS = [
+{file:'Genesis',ta:'ஆதி',ch:50},{file:'Exodus',ta:'யாத்',ch:40},
+{file:'Leviticus',ta:'லேவி',ch:27},{file:'Numbers',ta:'எண்',ch:36},
+{file:'Deuteronomy',ta:'உபா',ch:34},{file:'Joshua',ta:'யோசு',ch:24},
+{file:'Judges',ta:'நியா',ch:21},{file:'Ruth',ta:'ரூத்',ch:4},
+{file:'1 Samuel',ta:'1 சா',ch:31},{file:'2 Samuel',ta:'2 சா',ch:24},
+{file:'Matthew',ta:'மத்',ch:28},{file:'Mark',ta:'மாற்',ch:16},
+{file:'Luke',ta:'லூக்',ch:24},{file:'John',ta:'யோவான்',ch:21},
+{file:'Acts',ta:'அப்',ch:28},{file:'Romans',ta:'ரோமர்',ch:16},
+{file:'Revelation',ta:'வெளி',ch:22}
+];
+
+let currentBook=0;
+let currentChapter=1;
+let cache={};
+let allVerses=[];
+
+// INIT
+function init(){
+ renderBooks();
+ loadFromURL();
+ document.getElementById("search").addEventListener("input", search);
+}
+
+// URL
+function loadFromURL(){
+ const p=new URLSearchParams(location.search);
+ const b=p.get("book");
+ const c=parseInt(p.get("chapter"));
+
+ const idx=BOOKS.findIndex(x=>x.file===b);
+ if(idx>=0){ currentBook=idx; currentChapter=c||1; }
+
+ renderBooks();
+ renderChapters();
+ loadChapter();
+}
+
+// UPDATE URL
+function updateURL(){
+ const b=BOOKS[currentBook];
+ history.replaceState({},'',`?book=${b.file}&chapter=${currentChapter}`);
+}
+
+// BOOK LIST
+function renderBooks(){
+ let html="";
+ BOOKS.forEach((b,i)=>{
+  html+=`<div class="book ${i===currentBook?'active':''}" onclick="selectBook(${i})">${b.ta}</div>`;
+ });
+ document.getElementById("books").innerHTML=html;
+}
+
+// SELECT BOOK
+function selectBook(i){
+ currentBook=i;
+ currentChapter=1;
+ renderBooks();
+ renderChapters();
+ loadChapter();
+}
+
+// CHAPTER GRID
+function renderChapters(){
+ const book=BOOKS[currentBook];
+ let html='<div class="chapter-grid">';
+ for(let i=1;i<=book.ch;i++){
+  html+=`<div class="ch ${i===currentChapter?'active':''}" onclick="selectChapter(${i})">${i}</div>`;
+ }
+ html+='</div>';
+ document.getElementById("chapters").innerHTML=html;
+}
+
+function selectChapter(c){
+ currentChapter=c;
+ renderChapters();
+ loadChapter();
+}
+
+// LOAD
+async function loadChapter(){
+ const book=BOOKS[currentBook];
+ updateURL();
+
+ let data=cache[book.file];
+ if(!data){
+  const res=await fetch(BASE+encodeURIComponent(book.file)+".json");
+  data=await res.json();
+  cache[book.file]=data;
+ }
+
+ const verses=data[currentChapter];
+ let html=`<h2>${book.ta} ${currentChapter}</h2>`;
+
+ Object.values(verses).forEach((v,i)=>{
+  html+=`<div class="verse" onclick="highlight(this)"><b>${i+1}</b> ${v}</div>`;
+ });
+
+ document.getElementById("content").innerHTML=html;
+}
+
+// HIGHLIGHT
+function highlight(el){
+ document.querySelectorAll(".verse").forEach(e=>e.classList.remove("highlight"));
+ el.classList.add("highlight");
+}
+
+// NAV
+function prev(){
+ if(currentChapter>1){
+  currentChapter--;
+ } else if(currentBook>0){
+  currentBook--;
+  currentChapter=BOOKS[currentBook].ch;
+ }
+ renderBooks(); renderChapters(); loadChapter();
+}
+
+function next(){
+ if(currentChapter<BOOKS[currentBook].ch){
+  currentChapter++;
+ } else if(currentBook<BOOKS.length-1){
+  currentBook++;
+  currentChapter=1;
+ }
+ renderBooks(); renderChapters(); loadChapter();
+}
+
+// SEARCH
+async function search(e){
+ const q=e.target.value.trim();
+ if(q.length<2){ loadChapter(); return; }
+
+ if(allVerses.length===0){
+  for(let b of BOOKS){
+   const res=await fetch(BASE+encodeURIComponent(b.file)+".json");
+   const data=await res.json();
+
+   for(let ch in data){
+    Object.values(data[ch]).forEach((v,i)=>{
+     allVerses.push({book:b.ta,chapter:ch,verse:i+1,text:v});
+    });
+   }
+  }
+ }
+
+ let res=allVerses.filter(v=>v.text.includes(q));
+ let html=`<h3>${res.length} முடிவுகள்</h3>`;
+
+ res.slice(0,50).forEach(r=>{
+  html+=`<div class="verse"><b>${r.book} ${r.chapter}:${r.verse}</b> ${r.text}</div>`;
+ });
+
+ document.getElementById("content").innerHTML=html;
+}
+
+init();
+</script>
+
+</body>
+</html>
