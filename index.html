@@ -3,232 +3,698 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>தமிழ் வேதாகமம்</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Tiro+Tamil&family=Noto+Sans+Tamil&family=DM+Sans&display=swap" rel="stylesheet">
-
+<title>தமிழ் வேதாகமம் | Tamil Bible</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Tamil:ital@0;1&family=Noto+Sans+Tamil:wght@400;500;600&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
-body { margin:0; font-family:'Noto Sans Tamil'; background:#fafaf8; }
-header { background:#1a4fa0; color:white; padding:10px; display:flex; justify-content:space-between; }
-input { padding:6px; border-radius:6px; border:none; }
+  :root {
+    --primary: #1a4fa0;
+    --primary-light: #e8f0fb;
+    --primary-mid: #4a7fd4;
+    --accent: #c8a84b;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --sidebar-bg: #f5f4f0;
+    --text: #1a1a1a;
+    --text-muted: #6b6b6b;
+    --text-light: #999;
+    --border: #e2e0da;
+    --border-light: #eeede9;
+    --verse-num: #1a4fa0;
+    --font-size: 20px;
+    --sidebar-width: 240px;
+  }
 
-.layout { display:flex; height:calc(100vh - 50px); }
-.sidebar { width:230px; overflow:auto; border-right:1px solid #ddd; background:#f5f4f0; }
-.content { flex:1; padding:20px; overflow:auto; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.book { padding:8px; cursor:pointer; }
-.book:hover { background:#ddd; }
-.active { background:#1a4fa0; color:white; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
 
-.chapter-grid { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
-.ch { width:32px; height:32px; border:1px solid #ccc; cursor:pointer; text-align:center; line-height:32px; }
-.ch.active { background:#1a4fa0; color:white; }
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 16px;
+  }
 
-.verse { margin-bottom:12px; line-height:1.8; cursor:pointer; }
-.highlight { background:#fff3cd; }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .logo-icon {
+    width: 34px; height: 34px;
+    background: var(--primary);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-icon svg { width: 18px; height: 18px; fill: white; }
+  .logo-text { font-size: 17px; font-weight: 500; color: var(--text); line-height: 1.1; }
+  .logo-text span { font-size: 11px; font-weight: 400; color: var(--text-muted); display: block; }
 
-.nav { margin-top:20px; display:flex; justify-content:space-between; }
-button { padding:6px 10px; cursor:pointer; }
+  .search-wrap {
+    flex: 1;
+    max-width: 480px;
+    position: relative;
+  }
+  .search-wrap svg {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 15px; height: 15px; opacity: 0.4; pointer-events: none;
+  }
+  #searchInput {
+    width: 100%; padding: 9px 12px 9px 36px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px; font-family: 'Noto Sans Tamil', sans-serif;
+    background: var(--sidebar-bg);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  #searchInput:focus { border-color: var(--primary); background: var(--surface); }
+  #searchInput::placeholder { color: var(--text-light); }
+
+  .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .font-btn {
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 11px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer; color: var(--text);
+    transition: background 0.15s;
+  }
+  .font-btn:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+  .font-label { font-size: 12px; color: var(--text-muted); }
+
+  /* ── LAYOUT ── */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 60px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .sidebar-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    flex: 1; padding: 10px 0;
+    font-size: 12px; font-weight: 500;
+    background: none; border: none;
+    cursor: pointer; color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  .book-list {
+    overflow-y: auto; flex: 1;
+    padding: 8px 0;
+  }
+  .section-label {
+    font-size: 10px; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-light);
+    padding: 12px 16px 4px;
+  }
+  .book-item {
+    padding: 7px 16px;
+    font-size: 13.5px;
+    font-family: 'Noto Sans Tamil', sans-serif;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex; justify-content: space-between; align-items: center;
+    border-radius: 0;
+    transition: background 0.1s, color 0.1s;
+  }
+  .book-item:hover { background: #ece9e0; color: var(--text); }
+  .book-item.active { background: var(--primary-light); color: var(--primary); font-weight: 500; }
+  .book-ch-count { font-size: 11px; color: var(--text-light); }
+
+  .chapter-panel { padding: 12px 12px 8px; border-bottom: 1px solid var(--border); }
+  .chapter-panel-title { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; font-weight: 500; }
+  .ch-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+  .ch-btn {
+    width: 32px; height: 32px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface);
+    font-size: 12px; cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.1s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ch-btn:hover { border-color: var(--primary-mid); color: var(--primary); background: var(--primary-light); }
+  .ch-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+  /* ── CONTENT ── */
+  .content-area {
+    flex: 1; overflow-y: auto;
+    padding: 36px 48px 60px;
+    max-width: 800px;
+  }
+
+  .content-header { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border-light); }
+  .breadcrumb { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .breadcrumb span { color: var(--primary); }
+  .chapter-title { font-family: 'Tiro Tamil', serif; font-size: 28px; font-weight: 400; color: var(--text); line-height: 1.3; }
+  .chapter-meta { font-size: 13px; color: var(--text-light); margin-top: 6px; }
+
+  #verses-container { line-height: 1; }
+
+  .verse-row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 18px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-light);
+    cursor: pointer;
+    transition: background 0.1s;
+    border-radius: 4px;
+  }
+  .verse-row:hover { background: #f5f3ed; padding-left: 8px; padding-right: 8px; margin-left: -8px; margin-right: -8px; }
+  .verse-number {
+    font-size: 11px; font-weight: 500;
+    color: var(--verse-num);
+    min-width: 24px; padding-top: 6px;
+    text-align: right; opacity: 0.7;
+    font-family: 'DM Sans', sans-serif;
+    flex-shrink: 0;
+  }
+  .verse-text {
+    font-family: 'Tiro Tamil', serif;
+    font-size: var(--font-size);
+    color: var(--text);
+    line-height: 1.95;
+  }
+
+  .verse-row.highlighted { background: #fef9e7; border-left: 3px solid var(--accent); padding-left: 10px; }
+
+  /* Loading state */
+  .loading {
+    display: flex; align-items: center; justify-content: center;
+    padding: 60px 0; color: var(--text-muted); font-size: 15px; gap: 10px;
+  }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Search results */
+  .search-results { padding: 20px 0; }
+  .search-result-item {
+    padding: 14px 0; border-bottom: 1px solid var(--border-light); cursor: pointer;
+  }
+  .search-result-item:hover .sr-verse { color: var(--primary); }
+  .sr-ref { font-size: 12px; color: var(--primary); font-weight: 500; margin-bottom: 5px; font-family: 'DM Sans', sans-serif; }
+  .sr-verse { font-family: 'Tiro Tamil', serif; font-size: 16px; color: var(--text); line-height: 1.8; }
+  .sr-verse mark { background: #fef3b0; color: var(--text); border-radius: 2px; padding: 0 2px; }
+  .search-count { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+
+  /* Footer nav */
+  .footer-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 32px; margin-top: 16px; border-top: 1px solid var(--border-light);
+  }
+  .nav-btn {
+    padding: 9px 20px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px; cursor: pointer;
+    background: var(--surface); color: var(--text);
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .nav-btn:disabled { opacity: 0.35; cursor: default; }
+  .nav-btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+  .nav-btn.primary:hover { background: #163d7a; }
+
+  /* Right panel */
+  .right-panel {
+    width: 260px; border-left: 1px solid var(--border);
+    background: var(--surface); padding: 20px 16px;
+    overflow-y: auto; flex-shrink: 0;
+    display: none;
+  }
+  @media (min-width: 1200px) { .right-panel { display: block; } }
+
+  .rp-title { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 14px; }
+  .daily-verse {
+    background: var(--primary-light); border-radius: 10px; padding: 14px;
+    border-left: 3px solid var(--primary);
+  }
+  .dv-ref { font-size: 11px; color: var(--primary); font-weight: 500; margin-bottom: 6px; }
+  .dv-text { font-family: 'Tiro Tamil', serif; font-size: 15px; line-height: 1.85; color: var(--text); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d0cec8; border-radius: 3px; }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .sidebar { width: 200px; }
+    .content-area { padding: 24px 20px 40px; }
+    header { padding: 0 16px; }
+    .search-wrap { max-width: 200px; }
+    .font-label { display: none; }
+    .chapter-title { font-size: 22px; }
+  }
+  @media (max-width: 540px) {
+    .sidebar { display: none; }
+    .main-layout { flex-direction: column; }
+  }
 </style>
 </head>
-
 <body>
 
+<!-- HEADER -->
 <header>
-<div>📖 தமிழ் வேதாகமம்</div>
-<input id="search" placeholder="தேடுக...">
+  <a class="logo" href="#">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24"><path d="M6 2h12a2 2 0 012 2v16a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2zm0 2v16h12V4H6zm2 3h8v1.5H8V7zm0 3h8v1.5H8V10zm0 3h5v1.5H8V13z"/></svg>
+    </div>
+    <div class="logo-text">தமிழ் வேதாகமம் <span>Tamil Bible Online</span></div>
+  </a>
+  <div class="search-wrap">
+    <svg viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <input id="searchInput" type="text" placeholder="வசனம் அல்லது வார்த்தை தேடுக..." autocomplete="off"/>
+  </div>
+  <div class="header-right">
+    <span class="font-label">எழுத்து:</span>
+    <button class="font-btn" onclick="changeFontSize(-2)">A−</button>
+    <button class="font-btn" onclick="changeFontSize(2)">A+</button>
+  </div>
 </header>
 
-<div class="layout">
-<div class="sidebar" id="books"></div>
+<!-- MAIN -->
+<div class="main-layout">
 
-<div class="content">
-<div id="chapters"></div>
-<div id="content">Loading...</div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-tabs">
+      <button class="tab-btn active" onclick="showTab('books')">புத்தகங்கள்</button>
+      <button class="tab-btn" onclick="showTab('chapters')">அதிகாரங்கள்</button>
+    </div>
 
-<div class="nav">
-<button onclick="prev()">← Previous</button>
-<button onclick="next()">Next →</button>
-</div>
-</div>
+    <div id="tab-books" class="book-list"></div>
+
+    <div id="tab-chapters" style="display:none; overflow-y:auto; flex:1; padding: 12px;">
+      <div class="chapter-panel-title" style="font-size:12px;color:var(--text-muted);margin-bottom:8px;" id="ch-panel-title">அதிகாரம் தேர்வு செய்யவும்</div>
+      <div class="ch-grid" id="chGrid"></div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <main class="content-area" id="mainContent">
+    <div class="loading"><div class="spinner"></div> ஏற்றுகிறது...</div>
+  </main>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rp-title">இன்றைய வசனம்</div>
+    <div class="daily-verse" id="dailyVerse">
+      <div class="dv-ref">யோவான் 3:16</div>
+      <div class="dv-text">தேவன், தம்முடைய ஒரே பேறான குமாரனை விசுவாசிக்கிறவன் எவனோ அவன் கெட்டுப்போகாமல் நித்தியஜீவனை அடையும்படிக்கு, அவரை தந்தருளி இவ்வளவாய் உலகத்தில் அன்பு கூர்ந்தார்.</div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-const BASE = 'https://cdn.jsdelivr.net/gh/aruljohn/Bible-tamil@main/Books/';
+// ── DATA ──
+const BASE = 'https://cdn.jsdelivr.net/gh/aruljohn/Bible-tamil@main/';
 
 const BOOKS = [
-{file:'Genesis',ta:'ஆதி',ch:50},{file:'Exodus',ta:'யாத்',ch:40},
-{file:'Leviticus',ta:'லேவி',ch:27},{file:'Numbers',ta:'எண்',ch:36},
-{file:'Deuteronomy',ta:'உபா',ch:34},{file:'Joshua',ta:'யோசு',ch:24},
-{file:'Judges',ta:'நியா',ch:21},{file:'Ruth',ta:'ரூத்',ch:4},
-{file:'1 Samuel',ta:'1 சா',ch:31},{file:'2 Samuel',ta:'2 சா',ch:24},
-{file:'Matthew',ta:'மத்',ch:28},{file:'Mark',ta:'மாற்',ch:16},
-{file:'Luke',ta:'லூக்',ch:24},{file:'John',ta:'யோவான்',ch:21},
-{file:'Acts',ta:'அப்',ch:28},{file:'Romans',ta:'ரோமர்',ch:16},
-{file:'Revelation',ta:'வெளி',ch:22}
+  // Old Testament
+  { file: 'Genesis', ta: 'ஆதியாகமம்', ch: 50, ot: true },
+  { file: 'Exodus', ta: 'யாத்திராகமம்', ch: 40, ot: true },
+  { file: 'Leviticus', ta: 'லேவியராகமம்', ch: 27, ot: true },
+  { file: 'Numbers', ta: 'எண்ணாகமம்', ch: 36, ot: true },
+  { file: 'Deuteronomy', ta: 'உபாகமம்', ch: 34, ot: true },
+  { file: 'Joshua', ta: 'யோசுவா', ch: 24, ot: true },
+  { file: 'Judges', ta: 'நியாயாதிபதிகள்', ch: 21, ot: true },
+  { file: 'Ruth', ta: 'ரூத்', ch: 4, ot: true },
+  { file: '1 Samuel', ta: '1 சாமுவேல்', ch: 31, ot: true },
+  { file: '2 Samuel', ta: '2 சாமுவேல்', ch: 24, ot: true },
+  { file: '1 Kings', ta: '1 இராஜாக்கள்', ch: 22, ot: true },
+  { file: '2 Kings', ta: '2 இராஜாக்கள்', ch: 25, ot: true },
+  { file: '1 Chronicles', ta: '1 நாளாகமம்', ch: 29, ot: true },
+  { file: '2 Chronicles', ta: '2 நாளாகமம்', ch: 36, ot: true },
+  { file: 'Ezra', ta: 'எஸ்றா', ch: 10, ot: true },
+  { file: 'Nehemiah', ta: 'நெகேமியா', ch: 13, ot: true },
+  { file: 'Esther', ta: 'எஸ்தர்', ch: 10, ot: true },
+  { file: 'Job', ta: 'யோபு', ch: 42, ot: true },
+  { file: 'Psalms', ta: 'சங்கீதம்', ch: 150, ot: true },
+  { file: 'Proverbs', ta: 'நீதிமொழிகள்', ch: 31, ot: true },
+  { file: 'Ecclesiastes', ta: 'பிரசங்கி', ch: 12, ot: true },
+  { file: 'Song of Songs', ta: 'உன்னதப்பாட்டு', ch: 8, ot: true },
+  { file: 'Isaiah', ta: 'ஏசாயா', ch: 66, ot: true },
+  { file: 'Jeremiah', ta: 'எரேமியா', ch: 52, ot: true },
+  { file: 'Lamentations', ta: 'புலம்பல்', ch: 5, ot: true },
+  { file: 'Ezekiel', ta: 'எசேக்கியேல்', ch: 48, ot: true },
+  { file: 'Daniel', ta: 'தானியேல்', ch: 12, ot: true },
+  { file: 'Hosea', ta: 'ஓசேயா', ch: 14, ot: true },
+  { file: 'Joel', ta: 'யோவேல்', ch: 3, ot: true },
+  { file: 'Amos', ta: 'ஆமோஸ்', ch: 9, ot: true },
+  { file: 'Obadiah', ta: 'ஒபதியா', ch: 1, ot: true },
+  { file: 'Jonah', ta: 'யோனா', ch: 4, ot: true },
+  { file: 'Micah', ta: 'மீகா', ch: 7, ot: true },
+  { file: 'Nahum', ta: 'நாகூம்', ch: 3, ot: true },
+  { file: 'Habakkuk', ta: 'ஆபகூக்', ch: 3, ot: true },
+  { file: 'Zephaniah', ta: 'செப்பனியா', ch: 3, ot: true },
+  { file: 'Haggai', ta: 'ஆகாய்', ch: 2, ot: true },
+  { file: 'Zechariah', ta: 'சகரியா', ch: 14, ot: true },
+  { file: 'Malachi', ta: 'மல்கியா', ch: 4, ot: true },
+  // New Testament
+  { file: 'Matthew', ta: 'மத்தேயு', ch: 28, ot: false },
+  { file: 'Mark', ta: 'மாற்கு', ch: 16, ot: false },
+  { file: 'Luke', ta: 'லூக்கா', ch: 24, ot: false },
+  { file: 'John', ta: 'யோவான்', ch: 21, ot: false },
+  { file: 'Acts', ta: 'அப்போஸ்தலருடைய நடபடிகள்', ch: 28, ot: false },
+  { file: 'Romans', ta: 'ரோமர்', ch: 16, ot: false },
+  { file: '1 Corinthians', ta: '1 கொரிந்தியர்', ch: 16, ot: false },
+  { file: '2 Corinthians', ta: '2 கொரிந்தியர்', ch: 13, ot: false },
+  { file: 'Galatians', ta: 'கலாத்தியர்', ch: 6, ot: false },
+  { file: 'Ephesians', ta: 'எபேசியர்', ch: 6, ot: false },
+  { file: 'Philippians', ta: 'பிலிப்பியர்', ch: 4, ot: false },
+  { file: 'Colossians', ta: 'கொலோசெயர்', ch: 4, ot: false },
+  { file: '1 Thessalonians', ta: '1 தெசலோனிக்கேயர்', ch: 5, ot: false },
+  { file: '2 Thessalonians', ta: '2 தெசலோனிக்கேயர்', ch: 3, ot: false },
+  { file: '1 Timothy', ta: '1 தீமோத்தேயு', ch: 6, ot: false },
+  { file: '2 Timothy', ta: '2 தீமோத்தேயு', ch: 4, ot: false },
+  { file: 'Titus', ta: 'தீத்து', ch: 3, ot: false },
+  { file: 'Philemon', ta: 'பிலேமோன்', ch: 1, ot: false },
+  { file: 'Hebrews', ta: 'எபிரெயர்', ch: 13, ot: false },
+  { file: 'James', ta: 'யாக்கோபு', ch: 5, ot: false },
+  { file: '1 Peter', ta: '1 பேதுரு', ch: 5, ot: false },
+  { file: '2 Peter', ta: '2 பேதுரு', ch: 3, ot: false },
+  { file: '1 John', ta: '1 யோவான்', ch: 5, ot: false },
+  { file: '2 John', ta: '2 யோவான்', ch: 1, ot: false },
+  { file: '3 John', ta: '3 யோவான்', ch: 1, ot: false },
+  { file: 'Jude', ta: 'யூதா', ch: 1, ot: false },
+  { file: 'Revelation', ta: 'வெளிப்படுத்தல்', ch: 22, ot: false },
 ];
 
-let currentBook=0;
-let currentChapter=1;
-let cache={};
-let allVerses=[];
+let currentBookIdx = 0;
+let currentChapter = 1;
+let bookCache = {};
+let fontSize = 20;
+let searchTimeout = null;
+let allVerses = null; // for search
 
-// INIT
-function init(){
- renderBooks();
- loadFromURL();
- document.getElementById("search").addEventListener("input", search);
+// ── INIT ──
+function init() {
+  renderBookList();
+  loadChapter(0, 1);
+  document.getElementById('searchInput').addEventListener('input', onSearch);
 }
 
-// URL
-function loadFromURL(){
- const p=new URLSearchParams(location.search);
- const b=p.get("book");
- const c=parseInt(p.get("chapter"));
-
- const idx=BOOKS.findIndex(x=>x.file===b);
- if(idx>=0){ currentBook=idx; currentChapter=c||1; }
-
- renderBooks();
- renderChapters();
- loadChapter();
-}
-
-// UPDATE URL
-function updateURL(){
- const b=BOOKS[currentBook];
- history.replaceState({},'',`?book=${b.file}&chapter=${currentChapter}`);
-}
-
-// BOOK LIST
-function renderBooks(){
- let html="";
- BOOKS.forEach((b,i)=>{
-  html+=`<div class="book ${i===currentBook?'active':''}" onclick="selectBook(${i})">${b.ta}</div>`;
- });
- document.getElementById("books").innerHTML=html;
-}
-
-// SELECT BOOK
-function selectBook(i){
- currentBook=i;
- currentChapter=1;
- renderBooks();
- renderChapters();
- loadChapter();
-}
-
-// CHAPTER GRID
-function renderChapters(){
- const book=BOOKS[currentBook];
- let html='<div class="chapter-grid">';
- for(let i=1;i<=book.ch;i++){
-  html+=`<div class="ch ${i===currentChapter?'active':''}" onclick="selectChapter(${i})">${i}</div>`;
- }
- html+='</div>';
- document.getElementById("chapters").innerHTML=html;
-}
-
-function selectChapter(c){
- currentChapter=c;
- renderChapters();
- loadChapter();
-}
-
-// LOAD
-async function loadChapter(){
- const book = BOOKS[currentBook];
- updateURL();
-
- let data = cache[book.file];
- if(!data){
-  const res = await fetch(BASE + encodeURIComponent(book.file) + ".json");
-  data = await res.json();
-  cache[book.file] = data;
- }
-
- // ✅ FIX: handle both number + string keys
- let verses = data[currentChapter] || data[String(currentChapter)];
-
- // ❗ If still not found
- if(!verses){
-  document.getElementById("content").innerHTML = "⚠️ வசனங்கள் கிடைக்கவில்லை";
-  return;
- }
-
- let html = `<h2>${book.ta} ${currentChapter}</h2>`;
-
- // ✅ FIX: handle array + object formats
- if (Array.isArray(verses)) {
-  verses.forEach((v,i)=>{
-    html += `<div class="verse" onclick="highlight(this)"><b>${i+1}</b> ${v}</div>`;
+function renderBookList() {
+  const container = document.getElementById('tab-books');
+  let html = '<div class="section-label">பழைய ஏற்பாடு</div>';
+  BOOKS.forEach((b, i) => {
+    if (!b.ot && BOOKS[i-1] && BOOKS[i-1].ot) {
+      html += '<div class="section-label" style="margin-top:8px">புதிய ஏற்பாடு</div>';
+    }
+    html += `<div class="book-item${i===0?' active':''}" onclick="selectBook(${i})" id="bi-${i}">
+      <span>${b.ta}</span><span class="book-ch-count">${b.ch}</span>
+    </div>`;
   });
- } else {
-  Object.entries(verses).forEach(([num, v])=>{
-    html += `<div class="verse" onclick="highlight(this)"><b>${num}</b> ${v}</div>`;
-  });
- }
-
- document.getElementById("content").innerHTML = html;
+  container.innerHTML = html;
 }
 
-// HIGHLIGHT
-function highlight(el){
- document.querySelectorAll(".verse").forEach(e=>e.classList.remove("highlight"));
- el.classList.add("highlight");
+function selectBook(idx) {
+  document.querySelectorAll('.book-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('bi-' + idx).classList.add('active');
+  currentBookIdx = idx;
+  currentChapter = 1;
+  renderChapterGrid(idx);
+  loadChapter(idx, 1);
+  showTab('chapters');
 }
 
-// NAV
-function prev(){
- if(currentChapter>1){
-  currentChapter--;
- } else if(currentBook>0){
-  currentBook--;
-  currentChapter=BOOKS[currentBook].ch;
- }
- renderBooks(); renderChapters(); loadChapter();
-}
-
-function next(){
- if(currentChapter<BOOKS[currentBook].ch){
-  currentChapter++;
- } else if(currentBook<BOOKS.length-1){
-  currentBook++;
-  currentChapter=1;
- }
- renderBooks(); renderChapters(); loadChapter();
-}
-
-// SEARCH
-async function search(e){
- const q=e.target.value.trim();
- if(q.length<2){ loadChapter(); return; }
-
- if(allVerses.length===0){
-  for(let b of BOOKS){
-   const res=await fetch(BASE+encodeURIComponent(b.file)+".json");
-   const data=await res.json();
-
-   for(let ch in data){
-    Object.values(data[ch]).forEach((v,i)=>{
-     allVerses.push({book:b.ta,chapter:ch,verse:i+1,text:v});
-    });
-   }
+function renderChapterGrid(idx) {
+  const book = BOOKS[idx];
+  document.getElementById('ch-panel-title').textContent = book.ta + ' — அதிகாரம்';
+  const grid = document.getElementById('chGrid');
+  let html = '';
+  for (let i = 1; i <= book.ch; i++) {
+    html += `<button class="ch-btn${i===currentChapter?' active':''}" onclick="selectChapter(${i})" id="ch-${i}">${i}</button>`;
   }
- }
-
- let res=allVerses.filter(v=>v.text.includes(q));
- let html=`<h3>${res.length} முடிவுகள்</h3>`;
-
- res.slice(0,50).forEach(r=>{
-  html+=`<div class="verse"><b>${r.book} ${r.chapter}:${r.verse}</b> ${r.text}</div>`;
- });
-
- document.getElementById("content").innerHTML=html;
+  grid.innerHTML = html;
 }
 
+function selectChapter(ch) {
+  document.querySelectorAll('.ch-btn').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('ch-' + ch);
+  if (el) el.classList.add('active');
+  currentChapter = ch;
+  loadChapter(currentBookIdx, ch);
+}
+
+async function loadChapter(bookIdx, chapter) {
+  const book = BOOKS[bookIdx];
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '<div class="loading"><div class="spinner"></div> ஏற்றுகிறது...</div>';
+
+  try {
+    let data;
+    const cacheKey = book.file;
+    if (bookCache[cacheKey]) {
+      data = bookCache[cacheKey];
+    } else {
+      const url = BASE + encodeURIComponent(book.file) + '.json';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Failed');
+      data = await res.json();
+      bookCache[cacheKey] = data;
+    }
+
+    renderChapter(data, book, chapter);
+  } catch(e) {
+    main.innerHTML = `<div class="loading" style="flex-direction:column;gap:8px">
+      <span>⚠️ தரவை ஏற்ற முடியவில்லை</span>
+      <span style="font-size:13px;color:var(--text-light)">இணைய இணைப்பை சரிபார்க்கவும்</span>
+    </div>`;
+  }
+}
+
+function renderChapter(data, book, chapter) {
+  const verses = data[chapter] || data[String(chapter)] || [];
+  const main = document.getElementById('mainContent');
+
+  const chapterKeys = Object.keys(data);
+  const totalChapters = chapterKeys.length;
+
+  let versesHtml = '';
+  if (Array.isArray(verses)) {
+    verses.forEach((v, i) => {
+      versesHtml += `<div class="verse-row" onclick="highlightVerse(this)">
+        <span class="verse-number">${i+1}</span>
+        <span class="verse-text">${v}</span>
+      </div>`;
+    });
+  } else {
+    // object format {1: "...", 2: "..."}
+    Object.entries(verses).forEach(([num, v]) => {
+      versesHtml += `<div class="verse-row" onclick="highlightVerse(this)">
+        <span class="verse-number">${num}</span>
+        <span class="verse-text">${v}</span>
+      </div>`;
+    });
+  }
+
+  const prevDisabled = chapter <= 1 ? 'disabled' : '';
+  const nextDisabled = chapter >= totalChapters ? 'disabled' : '';
+
+  main.innerHTML = `
+    <div class="content-header">
+      <div class="breadcrumb"><span>${book.ot ? 'பழைய ஏற்பாடு' : 'புதிய ஏற்பாடு'}</span> › ${book.ta}</div>
+      <div class="chapter-title">${book.ta} — அதிகாரம் ${chapter}</div>
+      <div class="chapter-meta">${Array.isArray(verses) ? verses.length : Object.keys(verses).length} வசனங்கள்</div>
+    </div>
+    <div id="verses-container">${versesHtml}</div>
+    <div class="footer-nav">
+      <button class="nav-btn" onclick="prevChapter()" ${prevDisabled}>← முந்தைய</button>
+      <span style="font-size:13px;color:var(--text-muted)">${chapter} / ${totalChapters}</span>
+      <button class="nav-btn primary" onclick="nextChapter()" ${nextDisabled}>அடுத்தது →</button>
+    </div>
+  `;
+
+  main.scrollTop = 0;
+  document.title = `${book.ta} ${chapter} | தமிழ் வேதாகமம்`;
+}
+
+function highlightVerse(el) {
+  document.querySelectorAll('.verse-row.highlighted').forEach(e => e.classList.remove('highlighted'));
+  el.classList.add('highlighted');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function prevChapter() {
+  if (currentChapter > 1) {
+    currentChapter--;
+    renderChapterGrid(currentBookIdx);
+    loadChapter(currentBookIdx, currentChapter);
+  } else if (currentBookIdx > 0) {
+    currentBookIdx--;
+    const prevBook = BOOKS[currentBookIdx];
+    currentChapter = prevBook.ch;
+    document.querySelectorAll('.book-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('bi-' + currentBookIdx).classList.add('active');
+    renderChapterGrid(currentBookIdx);
+    loadChapter(currentBookIdx, currentChapter);
+  }
+}
+
+function nextChapter() {
+  const book = BOOKS[currentBookIdx];
+  if (currentChapter < book.ch) {
+    currentChapter++;
+    renderChapterGrid(currentBookIdx);
+    loadChapter(currentBookIdx, currentChapter);
+  } else if (currentBookIdx < BOOKS.length - 1) {
+    currentBookIdx++;
+    currentChapter = 1;
+    document.querySelectorAll('.book-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('bi-' + currentBookIdx).classList.add('active');
+    renderChapterGrid(currentBookIdx);
+    loadChapter(currentBookIdx, currentChapter);
+  }
+}
+
+// ── SEARCH ──
+function onSearch(e) {
+  const q = e.target.value.trim();
+  if (searchTimeout) clearTimeout(searchTimeout);
+  if (q.length < 2) {
+    loadChapter(currentBookIdx, currentChapter);
+    return;
+  }
+  searchTimeout = setTimeout(() => performSearch(q), 400);
+}
+
+async function performSearch(query) {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '<div class="loading"><div class="spinner"></div> தேடுகிறது...</div>';
+
+  const results = [];
+
+  for (let bi = 0; bi < BOOKS.length; bi++) {
+    const book = BOOKS[bi];
+    let data;
+    try {
+      if (bookCache[book.file]) {
+        data = bookCache[book.file];
+      } else {
+        const url = BASE + encodeURIComponent(book.file) + '.json';
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        data = await res.json();
+        bookCache[book.file] = data;
+      }
+
+      for (const [ch, verses] of Object.entries(data)) {
+        const verseArr = Array.isArray(verses) ? verses : Object.values(verses);
+        verseArr.forEach((v, vi) => {
+          if (typeof v === 'string' && v.includes(query)) {
+            results.push({ book: book.ta, bookIdx: bi, chapter: parseInt(ch), verse: vi+1, text: v });
+          }
+        });
+      }
+    } catch(e) { continue; }
+    if (results.length > 200) break;
+  }
+
+  if (results.length === 0) {
+    main.innerHTML = `<div class="loading" style="flex-direction:column;gap:6px">
+      <span>"${query}" — எந்த வசனமும் கிடைக்கவில்லை</span>
+    </div>`;
+    return;
+  }
+
+  let html = `<div class="search-results">
+    <div class="search-count">"${query}" — ${results.length} வசனங்கள் கிடைத்தன</div>`;
+  results.slice(0, 100).forEach(r => {
+    const highlighted = r.text.replace(new RegExp(query, 'g'), `<mark>${query}</mark>`);
+    html += `<div class="search-result-item" onclick="goToVerse(${r.bookIdx}, ${r.chapter}, ${r.verse})">
+      <div class="sr-ref">${r.book} ${r.chapter}:${r.verse}</div>
+      <div class="sr-verse">${highlighted}</div>
+    </div>`;
+  });
+  html += '</div>';
+  main.innerHTML = html;
+}
+
+function goToVerse(bookIdx, chapter, verse) {
+  document.getElementById('searchInput').value = '';
+  currentBookIdx = bookIdx;
+  currentChapter = chapter;
+  document.querySelectorAll('.book-item').forEach(el => el.classList.remove('active'));
+  const bi = document.getElementById('bi-' + bookIdx);
+  if (bi) bi.classList.add('active');
+  renderChapterGrid(bookIdx);
+  showTab('books');
+  loadChapter(bookIdx, chapter).then(() => {
+    setTimeout(() => {
+      const rows = document.querySelectorAll('.verse-row');
+      const target = rows[verse - 1];
+      if (target) { highlightVerse(target); }
+    }, 300);
+  });
+}
+
+// ── FONT ──
+function changeFontSize(delta) {
+  fontSize = Math.min(28, Math.max(14, fontSize + delta));
+  document.documentElement.style.setProperty('--font-size', fontSize + 'px');
+}
+
+// ── TABS ──
+function showTab(tab) {
+  document.getElementById('tab-books').style.display = tab === 'books' ? 'block' : 'none';
+  document.getElementById('tab-chapters').style.display = tab === 'chapters' ? 'flex' : 'none';
+  document.querySelectorAll('.tab-btn').forEach((b, i) => {
+    b.classList.toggle('active', (i===0 && tab==='books') || (i===1 && tab==='chapters'));
+  });
+}
+
+// ── START ──
 init();
 </script>
-
 </body>
 </html>
